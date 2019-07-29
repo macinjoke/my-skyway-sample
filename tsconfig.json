@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "typeRoots": ["typings"],
     "sourceMap": true,
     "target": "es5",
     "module": "commonjs",
