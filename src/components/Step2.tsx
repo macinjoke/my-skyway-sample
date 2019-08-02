@@ -1,10 +1,14 @@
-import React from 'react'
+import React, { FC } from 'react'
 
-const Step2 = () => {
+type Props = {
+  id: string
+}
+
+const Step2: FC<Props> = ({ id }) => {
   return (
     <div id="step2">
       <p>
-        Your id: <span id="my-id">...</span>
+        Your id: <span id="my-id">{id}</span>
       </p>
       <p>Share this id with others so they can call you.</p>
       <h3>Make a call</h3>

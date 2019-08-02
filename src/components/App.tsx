@@ -1,35 +1,138 @@
-import React, { useEffect, useReducer, useRef, useState } from 'react'
+import React, {
+  ChangeEventHandler,
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react'
+import { useEvent } from 'react-use'
 import Step1 from './Step1'
 import Step2 from './Step2'
 import Step3 from './Step3'
+import Peer from 'skyway-js'
 
 type State = {
   mediaDevices: MediaDeviceInfo[]
+  isReady: boolean
+  selectedAudioId?: string
+  selectedVideoId?: string
 }
 
 const initialState: State = {
   mediaDevices: [],
+  isReady: false,
 }
 
-type Action = {
-  type: 'addMediaDevicesInfo'
-  payload: MediaDeviceInfo[]
-}
+type Action =
+  | {
+      type: 'addMediaDevicesInfo'
+      payload: MediaDeviceInfo[]
+    }
+  | {
+      type: 'changeAudio'
+      payload: string
+    }
+  | {
+      type: 'changeVideo'
+      payload: string
+    }
+  | {
+      type: 'setIsReady'
+      payload: boolean
+    }
 
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case 'addMediaDevicesInfo':
-      return { mediaDevices: action.payload }
+      return {
+        ...state,
+        mediaDevices: action.payload,
+        selectedAudioId: action.payload.filter(
+          device => device.kind === 'audioinput',
+        )[0].deviceId,
+        selectedVideoId: action.payload.filter(
+          device => device.kind === 'videoinput',
+        )[0].deviceId,
+      }
+    case 'changeAudio':
+      return {
+        ...state,
+        selectedAudioId: action.payload,
+      }
+    case 'changeVideo':
+      return {
+        ...state,
+        selectedVideoId: action.payload,
+      }
+    case 'setIsReady':
+      return {
+        ...state,
+        isReady: action.payload,
+      }
     default:
       return state
   }
 }
 
+const usePeer = (...args: ConstructorParameters<typeof Peer>) => {
+  const peerRef = useRef<Peer>()
+  if (!peerRef.current) {
+    peerRef.current = new Peer(...args)
+    peerRef.current.off = peerRef.current.removeListener // なぜかoffがundefined なので必要
+  }
+  return peerRef.current
+}
+
 const App: React.FC = () => {
   const [step, setStep] = useState(1)
-  const localVideoRef = useRef(null)
-
+  const localVideoRef = useRef<HTMLVideoElement>(null)
+  const localStreamRef = useRef<MediaStream>()
+  const peer = usePeer({
+    key: '18a7d218-ffeb-4ac0-9967-9848bcece7de',
+    debug: 3,
+  })
   const [state, dispatch] = useReducer(reducer, initialState)
+
+  const onOpen = useCallback(() => {
+    console.log('open')
+  }, [])
+
+  useEvent('open', onOpen, peer)
+
+  const onChangeAudio: ChangeEventHandler<HTMLSelectElement> = async e => {
+    if (!localVideoRef.current) return
+    dispatch({ type: 'changeAudio', payload: e.currentTarget.value })
+  }
+
+  const setStream = useCallback(async () => {
+    if (!localVideoRef.current) return
+    const constraints = {
+      audio: { deviceId: { exact: state.selectedAudioId } },
+      video: { deviceId: { exact: state.selectedVideoId } },
+    }
+    try {
+      localStreamRef.current = await navigator.mediaDevices.getUserMedia(
+        constraints,
+      )
+      localVideoRef.current.srcObject = localStreamRef.current
+      dispatch({ type: 'setIsReady', payload: true })
+    } catch (e) {
+      console.error(e)
+      // TODO エラー用のDOMを表示させるために dispatchをしたい
+    }
+
+    // if (existingCall) {
+    //   existingCall.replaceStream(stream)
+    //   return
+    // }
+    //
+    // step2()
+    // .catch(err => {
+    //   $('#step1-error').show()
+    //   console.error(err)
+    // })
+  }, [state.selectedAudioId, state.selectedVideoId])
 
   useEffect(() => {
     navigator.mediaDevices.enumerateDevices().then(deviceInfos => {
@@ -37,6 +140,10 @@ const App: React.FC = () => {
       dispatch({ type: 'addMediaDevicesInfo', payload: deviceInfos })
     })
   }, [])
+
+  useEffect(() => {
+    setStream()
+  }, [setStream])
 
   return (
     <div className="pure-g">
@@ -50,11 +157,11 @@ const App: React.FC = () => {
 
         <div className="select">
           <label htmlFor="audioSource">Audio input source: </label>
-          <select id="audioSource">
+          <select id="audioSource" onChange={onChangeAudio}>
             {state.mediaDevices
               .filter(device => device.kind === 'audioinput')
               .map((device, i) => (
-                <option key={device.deviceId}>
+                <option key={device.deviceId} value={device.deviceId}>
                   {device.label || `Microphone ${i + 1}`}
                 </option>
               ))}
@@ -67,14 +174,13 @@ const App: React.FC = () => {
             {state.mediaDevices
               .filter(device => device.kind === 'videoinput')
               .map((device, i) => (
-                <option key={device.deviceId}>
+                <option key={device.deviceId} value={device.deviceId}>
                   {device.label || `Camera ${i + 1}`}
                 </option>
               ))}
           </select>
         </div>
-        {step === 1 && <Step1 />}
-        {step === 2 && <Step2 />}
+        {state.isReady ? <Step2 id={peer.id} /> : <Step1 />}
         {step === 3 && <Step3 />}
         <button onClick={() => setStep(step + 1)}>up</button>
         <button onClick={() => setStep(step - 1)}>down</button>
