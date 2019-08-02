@@ -6,9 +6,9 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { useEvent } from 'react-use'
+import { useEvent, usePrevious } from 'react-use'
 import Step1 from './Step1'
-import Step2 from './Step2'
+import Step2, { ImperativeObject } from './Step2'
 import Step3 from './Step3'
 import Peer from 'skyway-js'
 
@@ -48,12 +48,8 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         mediaDevices: action.payload,
-        selectedAudioId: action.payload.filter(
-          device => device.kind === 'audioinput',
-        )[0].deviceId,
-        selectedVideoId: action.payload.filter(
-          device => device.kind === 'videoinput',
-        )[0].deviceId,
+        selectedAudioId: '',
+        selectedVideoId: action.payload.filter(device => device.kind === 'videoinput')[0].deviceId,
       }
     case 'changeAudio':
       return {
@@ -86,13 +82,15 @@ const usePeer = (...args: ConstructorParameters<typeof Peer>) => {
 
 const App: React.FC = () => {
   const [step, setStep] = useState(1)
+  const [state, dispatch] = useReducer(reducer, initialState)
+  const previousIsReady = usePrevious(state.isReady)
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const localStreamRef = useRef<MediaStream>()
+  const step2Ref = useRef<ImperativeObject>(null)
   const peer = usePeer({
     key: '18a7d218-ffeb-4ac0-9967-9848bcece7de',
     debug: 3,
   })
-  const [state, dispatch] = useReducer(reducer, initialState)
 
   const onOpen = useCallback(() => {
     console.log('open')
@@ -100,21 +98,22 @@ const App: React.FC = () => {
 
   useEvent('open', onOpen, peer)
 
-  const onChangeAudio: ChangeEventHandler<HTMLSelectElement> = async e => {
-    if (!localVideoRef.current) return
+  const onChangeAudio: ChangeEventHandler<HTMLSelectElement> = e => {
     dispatch({ type: 'changeAudio', payload: e.currentTarget.value })
+  }
+
+  const onChangeVideo: ChangeEventHandler<HTMLSelectElement> = e => {
+    dispatch({ type: 'changeVideo', payload: e.currentTarget.value })
   }
 
   const setStream = useCallback(async () => {
     if (!localVideoRef.current) return
     const constraints = {
-      audio: { deviceId: { exact: state.selectedAudioId } },
+      audio: state.selectedAudioId ? { deviceId: { exact: state.selectedAudioId } } : false,
       video: { deviceId: { exact: state.selectedVideoId } },
     }
     try {
-      localStreamRef.current = await navigator.mediaDevices.getUserMedia(
-        constraints,
-      )
+      localStreamRef.current = await navigator.mediaDevices.getUserMedia(constraints)
       localVideoRef.current.srcObject = localStreamRef.current
       dispatch({ type: 'setIsReady', payload: true })
     } catch (e) {
@@ -145,6 +144,13 @@ const App: React.FC = () => {
     setStream()
   }, [setStream])
 
+  useEffect(() => {
+    if (!step2Ref.current) return
+    if (!previousIsReady && state.isReady) {
+      step2Ref.current.focus()
+    }
+  }, [state.isReady]) // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="pure-g">
       <div className="pure-u-2-3">
@@ -165,12 +171,13 @@ const App: React.FC = () => {
                   {device.label || `Microphone ${i + 1}`}
                 </option>
               ))}
+            <option value={''}>Unused</option>
           </select>
         </div>
 
         <div className="select">
           <label htmlFor="videoSource">Video source: </label>
-          <select id="videoSource">
+          <select id="videoSource" onChange={onChangeVideo}>
             {state.mediaDevices
               .filter(device => device.kind === 'videoinput')
               .map((device, i) => (
@@ -180,7 +187,7 @@ const App: React.FC = () => {
               ))}
           </select>
         </div>
-        {state.isReady ? <Step2 id={peer.id} /> : <Step1 />}
+        {state.isReady ? <Step2 ref={step2Ref} id={peer.id} /> : <Step1 />}
         {step === 3 && <Step3 />}
         <button onClick={() => setStep(step + 1)}>up</button>
         <button onClick={() => setStep(step - 1)}>down</button>
