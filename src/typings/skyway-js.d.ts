@@ -8,6 +8,8 @@
 // Updated by macinjoke
 
 declare module 'skyway-js' {
+  import { EventEmitter } from 'events'
+
   export interface Options {
     key: string
     debug?: number
@@ -58,9 +60,10 @@ declare module 'skyway-js' {
     audioCodec?: string
   }
 
-  export default class Peer {
+  export default class Peer extends EventEmitter {
     constructor(id: string, options: Options)
     constructor(options: Options)
+    constructor(arg1: string | Options, arg2?: Options)
 
     connections: any
     id: string
@@ -85,13 +88,13 @@ declare module 'skyway-js' {
     listAllPeers(cb: (peerIds: string[]) => void): void
     updateCredential(newCredential: Credential): undefined
 
-    on(event: string, cb: (ret: any) => void): void
-    on(event: 'open', cb: (id: string) => void): void
-    on(event: 'call', cb: (call: MediaConnection) => void): void
-    on(event: 'close', cb: () => void): void
-    on(event: 'connection', cb: (connection: DataConnection) => void): void
-    on(event: 'disconnected', cb: (id: string) => void): void
-    on(event: 'error', cb: (err: any) => void): void
+    on(type: 'open', listener: (id: string) => void): this
+    on(type: 'call', listener: (call: MediaConnection) => void): this
+    on(type: 'close', listener: () => void): void
+    on(type: 'connection', listener: (connection: DataConnection) => void): void
+    on(type: 'disconnected', listener: (id: string) => void): void
+    on(type: 'error', listener: (err: any) => void): void
+    on(type: 'open' | 'call' | 'close' | 'connection' | 'disconnected' | 'error', listener: (ret: any) => void): void
   }
 
   export class MediaConnection {
