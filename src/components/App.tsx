@@ -46,8 +46,7 @@ type Action =
       payload: string
     }
   | {
-      type: 'setIsReady'
-      payload: boolean
+      type: 'ready'
     }
   | {
       type: 'setInputPeerId'
@@ -58,7 +57,7 @@ type Action =
       payload: string
     }
   | {
-      type: 'GetUserMediaError'
+      type: 'getUserMediaError'
     }
 
 const reducer = (state: State, action: Action): State => {
@@ -80,10 +79,11 @@ const reducer = (state: State, action: Action): State => {
         ...state,
         selectedVideoId: action.payload,
       }
-    case 'setIsReady':
+    case 'ready':
       return {
         ...state,
-        isReady: action.payload,
+        isReady: true,
+        isGetUserMediaError: false,
       }
     case 'setInputPeerId':
       return {
@@ -95,7 +95,7 @@ const reducer = (state: State, action: Action): State => {
         ...state,
         remotePeerId: action.payload,
       }
-    case 'GetUserMediaError':
+    case 'getUserMediaError':
       return {
         ...state,
         isGetUserMediaError: true,
@@ -170,6 +170,25 @@ const App: React.FC = () => {
     peer,
   )
 
+  const setStream = useCallback(async () => {
+    if (!localVideoRef.current) return
+    const constraints = {
+      audio: { deviceId: { exact: state.selectedAudioId } },
+      video: { deviceId: { exact: state.selectedVideoId } },
+    }
+    try {
+      localStreamRef.current = await navigator.mediaDevices.getUserMedia(constraints)
+      localVideoRef.current.srcObject = localStreamRef.current
+      dispatch({ type: 'ready' })
+      if (step2Ref.current) {
+        step2Ref.current.focus()
+      }
+    } catch (e) {
+      console.error(e.message)
+      dispatch({ type: 'getUserMediaError' })
+    }
+  }, [state.selectedAudioId, state.selectedVideoId])
+
   const onChangeAudio: ChangeEventHandler<HTMLSelectElement> = e => {
     dispatch({ type: 'changeAudio', payload: e.currentTarget.value })
   }
@@ -193,32 +212,13 @@ const App: React.FC = () => {
     connectionRef.current.close()
   }
 
+  const onClickRetry: MouseEventHandler<HTMLButtonElement> = () => {
+    setStream()
+  }
+
   const onChangeCallIdField: ChangeEventHandler<HTMLInputElement> = e => {
     dispatch({ type: 'setInputPeerId', payload: e.currentTarget.value })
   }
-
-  const setStream = useCallback(async () => {
-    if (!localVideoRef.current) return
-    const constraints = {
-      audio: { deviceId: { exact: state.selectedAudioId } },
-      video: { deviceId: { exact: state.selectedVideoId } },
-    }
-    try {
-      localStreamRef.current = await navigator.mediaDevices.getUserMedia(constraints)
-      localVideoRef.current.srcObject = localStreamRef.current
-      dispatch({ type: 'setIsReady', payload: true })
-      if (step2Ref.current) {
-        step2Ref.current.focus()
-      }
-    } catch (e) {
-      console.error(e)
-      dispatch({ type: 'GetUserMediaError' })
-      console.log(
-        'Failed to access the webcam and microphone. Make sure to run this demo on an http server and click allow when asked for permission by the browser.',
-      )
-      // TODO エラー用のDOMを表示させるために dispatchをしたい
-    }
-  }, [state.selectedAudioId, state.selectedVideoId])
 
   useEffect(() => {
     navigator.mediaDevices.enumerateDevices().then(deviceInfos => {
@@ -259,7 +259,9 @@ const App: React.FC = () => {
             ))}
         </select>
       </div>
-      {!state.isReady && <Step1 isGetUserMediaError={state.isGetUserMediaError} />}
+      {!state.isReady && (
+        <Step1 isGetUserMediaError={state.isGetUserMediaError} onClick={onClickRetry} />
+      )}
       {state.isReady && !state.remotePeerId && (
         <Step2
           ref={step2Ref}

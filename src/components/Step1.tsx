@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { MouseEventHandler } from 'react'
 
 type Props = {
   isGetUserMediaError: boolean
+  onClick: MouseEventHandler<HTMLButtonElement>
 }
 
-const Step1 = ({ isGetUserMediaError }: Props) => {
+const Step1 = ({ isGetUserMediaError, onClick }: Props) => {
   return (
     <div>
       <p>
@@ -12,13 +13,13 @@ const Step1 = ({ isGetUserMediaError }: Props) => {
         for calls.
       </p>
       {isGetUserMediaError && (
-        <div>
+        <>
           <p>
             Failed to access the webcam and microphone. Make sure to run this demo on an http server
             and click allow when asked for permission by the browser.
           </p>
-          <a href="#">Try again</a>
-        </div>
+          <button onClick={onClick}>Retry</button>
+        </>
       )}
     </div>
   )
