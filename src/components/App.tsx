@@ -112,22 +112,31 @@ const App: React.FC = () => {
     })
   }
 
-  const onOpen = useCallback(() => {
-    console.log('open')
-  }, [])
-  useEvent('open', onOpen, peer)
+  useEvent(
+    'open',
+    () => {
+      console.log('open')
+    },
+    peer,
+  )
 
-  const onCall = useCallback((call: MediaConnection) => {
-    if (!localStreamRef.current) return
-    call.answer(localStreamRef.current)
-    addOnStream(call)
-  }, [])
-  useEvent('call', onCall, peer)
+  useEvent(
+    'call',
+    (call: MediaConnection) => {
+      if (!localStreamRef.current) return
+      call.answer(localStreamRef.current)
+      addOnStream(call)
+    },
+    peer,
+  )
 
-  const onError = useCallback((error: Error) => {
-    console.error(error.message)
-  }, [])
-  useEvent('error', onError, peer)
+  useEvent(
+    'error',
+    (error: Error) => {
+      console.error(error.message)
+    },
+    peer,
+  )
 
   const onChangeAudio: ChangeEventHandler<HTMLSelectElement> = e => {
     dispatch({ type: 'changeAudio', payload: e.currentTarget.value })
