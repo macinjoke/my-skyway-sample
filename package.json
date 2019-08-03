@@ -15,11 +15,13 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-use": "^10.3.0",
-    "skyway-js": "^1.4.0"
+    "skyway-js": "^1.4.0",
+    "styled-components": "^4.3.2"
   },
   "devDependencies": {
     "@types/react": "^16.8.20",
     "@types/react-dom": "^16.8.4",
+    "@types/styled-components": "^4.1.18",
     "@typescript-eslint/eslint-plugin": "^1.10.2",
     "@typescript-eslint/parser": "^1.10.2",
     "config": "^3.2.2",

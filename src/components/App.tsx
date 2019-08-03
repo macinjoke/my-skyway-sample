@@ -8,6 +8,7 @@ import React, {
   useRef,
 } from 'react'
 import { useEvent, usePrevious } from 'react-use'
+import styled from 'styled-components'
 import Step1 from './Step1'
 import Step2, { ImperativeObject } from './Step2'
 import Step3 from './Step3'
@@ -61,7 +62,7 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         mediaDevices: action.payload,
-        selectedAudioId: '',
+        selectedAudioId: action.payload.filter(device => device.kind === 'audioinput')[0].deviceId,
         selectedVideoId: action.payload.filter(device => device.kind === 'videoinput')[0].deviceId,
       }
     case 'changeAudio':
@@ -102,6 +103,10 @@ const usePeer = (...args: ConstructorParameters<typeof Peer>) => {
   }
   return peerRef.current
 }
+
+const StyledHead = styled.h2`
+  color: cornflowerblue;
+`
 
 const App: React.FC = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
@@ -167,20 +172,10 @@ const App: React.FC = () => {
   const onSubmit: FormEventHandler<HTMLFormElement> = e => {
     e.preventDefault()
     connectionRef.current = peer.call(state.inputPeerId, localStreamRef.current)
-    // if (existingCall) {
-    //   existingCall.close()
-    // }
-    // Wait for stream on the call, then set peer video display
     if (!connectionRef.current) {
       throw new Error('call error')
     }
     startVideoCommunication()
-    // UI stuff
-    // existingCall = call
-    // $('#their-id').text(call.remoteId)
-    // call.on('close', step2)
-    // $('#step1, #step2').hide()
-    // $('#step3').show()
   }
 
   const onClickEndCall: MouseEventHandler<HTMLButtonElement> = () => {
@@ -196,7 +191,7 @@ const App: React.FC = () => {
   const setStream = useCallback(async () => {
     if (!localVideoRef.current) return
     const constraints = {
-      audio: state.selectedAudioId ? { deviceId: { exact: state.selectedAudioId } } : false,
+      audio: { deviceId: { exact: state.selectedAudioId } },
       video: { deviceId: { exact: state.selectedVideoId } },
     }
     try {
@@ -207,17 +202,6 @@ const App: React.FC = () => {
       console.error(e)
       // TODO エラー用のDOMを表示させるために dispatchをしたい
     }
-
-    // if (existingCall) {
-    //   existingCall.replaceStream(stream)
-    //   return
-    // }
-    //
-    // step2()
-    // .catch(err => {
-    //   $('#step1-error').show()
-    //   console.error(err)
-    // })
   }, [state.selectedAudioId, state.selectedVideoId])
 
   useEffect(() => {
@@ -239,54 +223,46 @@ const App: React.FC = () => {
 
   return (
     <div className="pure-g">
-      <div className="pure-u-2-3">
-        <video ref={remoteVideoRef} autoPlay></video>
-        <video ref={localVideoRef} muted autoPlay></video>
+      <StyledHead>SkyWay React Sample</StyledHead>
+      <video ref={localVideoRef} muted autoPlay width={400}></video>
+      <video ref={remoteVideoRef} autoPlay width={600}></video>
+      <div className="select">
+        <label htmlFor="audioSource">Audio input source: </label>
+        <select id="audioSource" onChange={onChangeAudio}>
+          {state.mediaDevices
+            .filter(device => device.kind === 'audioinput')
+            .map((device, i) => (
+              <option key={device.deviceId} value={device.deviceId}>
+                {device.label || `Microphone ${i + 1}`}
+              </option>
+            ))}
+        </select>
       </div>
-
-      <div className="pure-u-1-3">
-        <h2>SkyWay Video Chat</h2>
-
-        <div className="select">
-          <label htmlFor="audioSource">Audio input source: </label>
-          <select id="audioSource" onChange={onChangeAudio}>
-            {state.mediaDevices
-              .filter(device => device.kind === 'audioinput')
-              .map((device, i) => (
-                <option key={device.deviceId} value={device.deviceId}>
-                  {device.label || `Microphone ${i + 1}`}
-                </option>
-              ))}
-            <option value={''}>Unused</option>
-          </select>
-        </div>
-
-        <div className="select">
-          <label htmlFor="videoSource">Video source: </label>
-          <select id="videoSource" onChange={onChangeVideo}>
-            {state.mediaDevices
-              .filter(device => device.kind === 'videoinput')
-              .map((device, i) => (
-                <option key={device.deviceId} value={device.deviceId}>
-                  {device.label || `Camera ${i + 1}`}
-                </option>
-              ))}
-          </select>
-        </div>
-        {!state.isReady && <Step1 />}
-        {state.isReady && !state.remotePeerId && (
-          <Step2
-            ref={step2Ref}
-            id={peer.id}
-            onSubmit={onSubmit}
-            fieldValue={state.inputPeerId}
-            onChange={onChangeCallIdField}
-          />
-        )}
-        {state.remotePeerId && (
-          <Step3 localPeerId={peer.id} remotePeerId={state.remotePeerId} onClick={onClickEndCall} />
-        )}
+      <div className="select">
+        <label htmlFor="videoSource">Video source: </label>
+        <select id="videoSource" onChange={onChangeVideo}>
+          {state.mediaDevices
+            .filter(device => device.kind === 'videoinput')
+            .map((device, i) => (
+              <option key={device.deviceId} value={device.deviceId}>
+                {device.label || `Camera ${i + 1}`}
+              </option>
+            ))}
+        </select>
       </div>
+      {!state.isReady && <Step1 />}
+      {state.isReady && !state.remotePeerId && (
+        <Step2
+          ref={step2Ref}
+          id={peer.id}
+          onSubmit={onSubmit}
+          fieldValue={state.inputPeerId}
+          onChange={onChangeCallIdField}
+        />
+      )}
+      {state.remotePeerId && (
+        <Step3 localPeerId={peer.id} remotePeerId={state.remotePeerId} onClick={onClickEndCall} />
+      )}
     </div>
   )
 }
