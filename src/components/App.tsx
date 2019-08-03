@@ -12,6 +12,7 @@ import Step1 from './Step1'
 import Step2, { ImperativeObject } from './Step2'
 import Step3 from './Step3'
 import Peer, { MediaConnection } from 'skyway-js'
+import { CONFIG } from 'src/constants'
 
 type State = {
   mediaDevices: MediaDeviceInfo[]
@@ -101,7 +102,7 @@ const App: React.FC = () => {
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
   const step2Ref = useRef<ImperativeObject>(null)
   const peer = usePeer({
-    key: '18a7d218-ffeb-4ac0-9967-9848bcece7de',
+    key: CONFIG.skyway.apiKey,
     debug: 3,
   })
 
