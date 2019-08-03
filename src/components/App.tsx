@@ -130,9 +130,11 @@ const App: React.FC = () => {
     debug: 3,
   })
 
-  const startVideoCommunication = () => {
+  const addConnectionListeners = () => {
     if (!connectionRef.current) return
     connectionRef.current.on('stream', stream => {
+      if (!connectionRef.current) return
+      dispatch({ type: 'setRemotePeerId', payload: connectionRef.current.remoteId })
       if (!remoteVideoRef.current) return
       remoteVideoRef.current.srcObject = stream
     })
@@ -140,7 +142,6 @@ const App: React.FC = () => {
       console.log('close')
       dispatch({ type: 'setRemotePeerId', payload: '' })
     })
-    dispatch({ type: 'setRemotePeerId', payload: connectionRef.current.remoteId })
   }
 
   useEvent(
@@ -157,7 +158,7 @@ const App: React.FC = () => {
       connectionRef.current = connection
       if (!localStreamRef.current) return
       connection.answer(localStreamRef.current)
-      startVideoCommunication()
+      addConnectionListeners()
     },
     peer,
   )
@@ -165,7 +166,7 @@ const App: React.FC = () => {
   useEvent(
     'error',
     (error: Error) => {
-      console.error(error.message)
+      alert(error.message)
     },
     peer,
   )
@@ -203,7 +204,7 @@ const App: React.FC = () => {
     if (!connectionRef.current) {
       throw new Error('call error')
     }
-    startVideoCommunication()
+    addConnectionListeners()
   }
 
   const onClickEndCall: MouseEventHandler<HTMLButtonElement> = () => {
