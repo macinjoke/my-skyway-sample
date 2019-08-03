@@ -16,7 +16,7 @@
     "react-dom": "^16.8.6",
     "react-use": "^10.3.0",
     "skyway-js": "^1.4.0",
-    "styled-components": "^4.3.2"
+    "styled-components": "^5.0.0-beta.8"
   },
   "devDependencies": {
     "@types/react": "^16.8.20",
