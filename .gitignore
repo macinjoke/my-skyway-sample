@@ -3,4 +3,4 @@
 
 config/*
 !config/default.js
-!config/production.js
+!config/netlify.js
