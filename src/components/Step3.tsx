@@ -1,4 +1,5 @@
 import React, { MouseEventHandler } from 'react'
+import Button from './atoms/Button'
 
 type Props = {
   localPeerId: string
@@ -12,7 +13,7 @@ const Step3 = ({ localPeerId, remotePeerId, onClick }: Props) => {
       <p>Your id: {localPeerId}</p>
       <p>Currently in call with {remotePeerId}</p>
       <p>
-        <button onClick={onClick}>End call</button>
+        <Button onClick={onClick}>End call</Button>
       </p>
     </div>
   )

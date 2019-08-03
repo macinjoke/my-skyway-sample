@@ -5,6 +5,7 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react'
+import Button from './atoms/Button'
 
 type Props = {
   id: string
@@ -37,7 +38,7 @@ const Step2 = forwardRef<ImperativeObject, Props>(({ id, onSubmit, fieldValue, o
           value={fieldValue}
           onChange={onChange}
         />
-        <button type="submit">Call</button>
+        <Button type="submit">Call</Button>
       </form>
     </div>
   )
