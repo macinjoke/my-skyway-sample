@@ -26,10 +26,8 @@ const Step2 = forwardRef<ImperativeObject, Props>(({ id, onSubmit, fieldValue, o
     },
   }))
   return (
-    <div id="step2">
-      <p>
-        Your id: <span id="my-id">{id}</span>
-      </p>
+    <div>
+      <p>Your id :{id}</p>
       <p>Share this id with others so they can call you.</p>
       <h3>Make a call</h3>
       <form onSubmit={onSubmit} className="pure-form">
@@ -39,9 +37,7 @@ const Step2 = forwardRef<ImperativeObject, Props>(({ id, onSubmit, fieldValue, o
           value={fieldValue}
           onChange={onChange}
         />
-        <button className="pure-button pure-button-success" type="submit">
-          Call
-        </button>
+        <button type="submit">Call</button>
       </form>
     </div>
   )

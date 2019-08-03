@@ -8,7 +8,7 @@ type Props = {
 
 const Step3 = ({ localPeerId, remotePeerId, onClick }: Props) => {
   return (
-    <div id="step3">
+    <div>
       <p>Your id: {localPeerId}</p>
       <p>Currently in call with {remotePeerId}</p>
       <p>
