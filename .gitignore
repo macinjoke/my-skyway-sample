@@ -3,3 +3,4 @@
 
 config/*
 !config/default.js
+!config/production.js
