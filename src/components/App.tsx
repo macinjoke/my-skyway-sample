@@ -7,7 +7,7 @@ import React, {
   useReducer,
   useRef,
 } from 'react'
-import { useEvent, usePrevious } from 'react-use'
+import { useEvent } from 'react-use'
 import styled from 'styled-components'
 import Step1 from './Step1'
 import Step2, { ImperativeObject } from './Step2'
@@ -22,12 +22,14 @@ type State = {
   remotePeerId?: string
   selectedAudioId?: string
   selectedVideoId?: string
+  isGetUserMediaError: boolean
 }
 
 const initialState: State = {
   mediaDevices: [],
   isReady: false,
   inputPeerId: '',
+  isGetUserMediaError: false,
 }
 
 type Action =
@@ -54,6 +56,9 @@ type Action =
   | {
       type: 'setRemotePeerId'
       payload: string
+    }
+  | {
+      type: 'GetUserMediaError'
     }
 
 const reducer = (state: State, action: Action): State => {
@@ -90,6 +95,11 @@ const reducer = (state: State, action: Action): State => {
         ...state,
         remotePeerId: action.payload,
       }
+    case 'GetUserMediaError':
+      return {
+        ...state,
+        isGetUserMediaError: true,
+      }
     default:
       return state
   }
@@ -110,7 +120,6 @@ const StyledHead = styled.h2`
 
 const App: React.FC = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
-  const previousIsReady = usePrevious(state.isReady)
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const localStreamRef = useRef<MediaStream>()
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
@@ -198,8 +207,15 @@ const App: React.FC = () => {
       localStreamRef.current = await navigator.mediaDevices.getUserMedia(constraints)
       localVideoRef.current.srcObject = localStreamRef.current
       dispatch({ type: 'setIsReady', payload: true })
+      if (step2Ref.current) {
+        step2Ref.current.focus()
+      }
     } catch (e) {
       console.error(e)
+      dispatch({ type: 'GetUserMediaError' })
+      console.log(
+        'Failed to access the webcam and microphone. Make sure to run this demo on an http server and click allow when asked for permission by the browser.',
+      )
       // TODO エラー用のDOMを表示させるために dispatchをしたい
     }
   }, [state.selectedAudioId, state.selectedVideoId])
@@ -213,13 +229,6 @@ const App: React.FC = () => {
   useEffect(() => {
     setStream()
   }, [setStream])
-
-  useEffect(() => {
-    if (!step2Ref.current) return
-    if (!previousIsReady && state.isReady) {
-      step2Ref.current.focus()
-    }
-  }, [state.isReady]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="pure-g">
@@ -250,7 +259,7 @@ const App: React.FC = () => {
             ))}
         </select>
       </div>
-      {!state.isReady && <Step1 />}
+      {!state.isReady && <Step1 isGetUserMediaError={state.isGetUserMediaError} />}
       {state.isReady && !state.remotePeerId && (
         <Step2
           ref={step2Ref}
