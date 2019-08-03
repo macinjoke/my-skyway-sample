@@ -1,14 +1,23 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react'
+import React, {
+  ChangeEventHandler,
+  FormEventHandler,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+} from 'react'
 
 type Props = {
   id: string
+  onSubmit: FormEventHandler<HTMLFormElement>
+  onChange: ChangeEventHandler<HTMLInputElement>
+  fieldValue: string
 }
 
 export type ImperativeObject = {
   focus: () => void
 }
 
-const Step2 = forwardRef<ImperativeObject, Props>(({ id }, ref) => {
+const Step2 = forwardRef<ImperativeObject, Props>(({ id, onSubmit, fieldValue, onChange }, ref) => {
   const inputRef = useRef<HTMLInputElement>(null)
   useImperativeHandle(ref, () => ({
     focus: () => {
@@ -23,8 +32,13 @@ const Step2 = forwardRef<ImperativeObject, Props>(({ id }, ref) => {
       </p>
       <p>Share this id with others so they can call you.</p>
       <h3>Make a call</h3>
-      <form id="make-call" className="pure-form">
-        <input ref={inputRef} type="text" placeholder="Call user id..." id="callto-id" />
+      <form onSubmit={onSubmit} className="pure-form">
+        <input
+          ref={inputRef}
+          placeholder="Call user id..."
+          value={fieldValue}
+          onChange={onChange}
+        />
         <button className="pure-button pure-button-success" type="submit">
           Call
         </button>

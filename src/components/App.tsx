@@ -1,5 +1,6 @@
 import React, {
   ChangeEventHandler,
+  FormEventHandler,
   useCallback,
   useEffect,
   useReducer,
@@ -10,11 +11,12 @@ import { useEvent, usePrevious } from 'react-use'
 import Step1 from './Step1'
 import Step2, { ImperativeObject } from './Step2'
 import Step3 from './Step3'
-import Peer from 'skyway-js'
+import Peer, { MediaConnection } from 'skyway-js'
 
 type State = {
   mediaDevices: MediaDeviceInfo[]
   isReady: boolean
+  inputCallId: string
   selectedAudioId?: string
   selectedVideoId?: string
 }
@@ -22,6 +24,7 @@ type State = {
 const initialState: State = {
   mediaDevices: [],
   isReady: false,
+  inputCallId: '',
 }
 
 type Action =
@@ -40,6 +43,10 @@ type Action =
   | {
       type: 'setIsReady'
       payload: boolean
+    }
+  | {
+      type: 'setCallId'
+      payload: string
     }
 
 const reducer = (state: State, action: Action): State => {
@@ -66,6 +73,11 @@ const reducer = (state: State, action: Action): State => {
         ...state,
         isReady: action.payload,
       }
+    case 'setCallId':
+      return {
+        ...state,
+        inputCallId: action.payload,
+      }
     default:
       return state
   }
@@ -86,17 +98,36 @@ const App: React.FC = () => {
   const previousIsReady = usePrevious(state.isReady)
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const localStreamRef = useRef<MediaStream>()
+  const remoteVideoRef = useRef<HTMLVideoElement>(null)
   const step2Ref = useRef<ImperativeObject>(null)
   const peer = usePeer({
     key: '18a7d218-ffeb-4ac0-9967-9848bcece7de',
     debug: 3,
   })
 
+  const addOnStream = (call: MediaConnection) => {
+    call.on('stream', stream => {
+      if (!remoteVideoRef.current) return
+      remoteVideoRef.current.srcObject = stream
+    })
+  }
+
   const onOpen = useCallback(() => {
     console.log('open')
   }, [])
-
   useEvent('open', onOpen, peer)
+
+  const onCall = useCallback((call: MediaConnection) => {
+    if (!localStreamRef.current) return
+    call.answer(localStreamRef.current)
+    addOnStream(call)
+  }, [])
+  useEvent('call', onCall, peer)
+
+  const onError = useCallback((error: Error) => {
+    console.error(error.message)
+  }, [])
+  useEvent('error', onError, peer)
 
   const onChangeAudio: ChangeEventHandler<HTMLSelectElement> = e => {
     dispatch({ type: 'changeAudio', payload: e.currentTarget.value })
@@ -104,6 +135,29 @@ const App: React.FC = () => {
 
   const onChangeVideo: ChangeEventHandler<HTMLSelectElement> = e => {
     dispatch({ type: 'changeVideo', payload: e.currentTarget.value })
+  }
+
+  const onSubmit: FormEventHandler<HTMLFormElement> = e => {
+    e.preventDefault()
+    const call = peer.call(state.inputCallId, localStreamRef.current)
+    // if (existingCall) {
+    //   existingCall.close()
+    // }
+    // Wait for stream on the call, then set peer video display
+    if (!call) {
+      throw new Error('call error')
+    }
+    addOnStream(call)
+    // UI stuff
+    // existingCall = call
+    // $('#their-id').text(call.remoteId)
+    // call.on('close', step2)
+    // $('#step1, #step2').hide()
+    // $('#step3').show()
+  }
+
+  const onChangeCallIdField: ChangeEventHandler<HTMLInputElement> = e => {
+    dispatch({ type: 'setCallId', payload: e.currentTarget.value })
   }
 
   const setStream = useCallback(async () => {
@@ -135,7 +189,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     navigator.mediaDevices.enumerateDevices().then(deviceInfos => {
-      console.log(deviceInfos)
       dispatch({ type: 'addMediaDevicesInfo', payload: deviceInfos })
     })
   }, [])
@@ -154,8 +207,8 @@ const App: React.FC = () => {
   return (
     <div className="pure-g">
       <div className="pure-u-2-3">
-        <video ref={localVideoRef} autoPlay></video>
-        <video muted autoPlay></video>
+        <video ref={remoteVideoRef} autoPlay></video>
+        <video ref={localVideoRef} muted autoPlay></video>
       </div>
 
       <div className="pure-u-1-3">
@@ -187,7 +240,17 @@ const App: React.FC = () => {
               ))}
           </select>
         </div>
-        {state.isReady ? <Step2 ref={step2Ref} id={peer.id} /> : <Step1 />}
+        {state.isReady ? (
+          <Step2
+            ref={step2Ref}
+            id={peer.id}
+            onSubmit={onSubmit}
+            fieldValue={state.inputCallId}
+            onChange={onChangeCallIdField}
+          />
+        ) : (
+          <Step1 />
+        )}
         {step === 3 && <Step3 />}
         <button onClick={() => setStep(step + 1)}>up</button>
         <button onClick={() => setStep(step - 1)}>down</button>
