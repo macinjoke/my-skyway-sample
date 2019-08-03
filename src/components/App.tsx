@@ -1,11 +1,11 @@
 import React, {
   ChangeEventHandler,
   FormEventHandler,
+  MouseEventHandler,
   useCallback,
   useEffect,
   useReducer,
   useRef,
-  useState,
 } from 'react'
 import { useEvent, usePrevious } from 'react-use'
 import Step1 from './Step1'
@@ -17,7 +17,8 @@ import { CONFIG } from 'src/constants'
 type State = {
   mediaDevices: MediaDeviceInfo[]
   isReady: boolean
-  inputCallId: string
+  inputPeerId: string
+  remotePeerId?: string
   selectedAudioId?: string
   selectedVideoId?: string
 }
@@ -25,7 +26,7 @@ type State = {
 const initialState: State = {
   mediaDevices: [],
   isReady: false,
-  inputCallId: '',
+  inputPeerId: '',
 }
 
 type Action =
@@ -46,7 +47,11 @@ type Action =
       payload: boolean
     }
   | {
-      type: 'setCallId'
+      type: 'setInputPeerId'
+      payload: string
+    }
+  | {
+      type: 'setRemotePeerId'
       payload: string
     }
 
@@ -74,10 +79,15 @@ const reducer = (state: State, action: Action): State => {
         ...state,
         isReady: action.payload,
       }
-    case 'setCallId':
+    case 'setInputPeerId':
       return {
         ...state,
-        inputCallId: action.payload,
+        inputPeerId: action.payload,
+      }
+    case 'setRemotePeerId':
+      return {
+        ...state,
+        remotePeerId: action.payload,
       }
     default:
       return state
@@ -94,23 +104,29 @@ const usePeer = (...args: ConstructorParameters<typeof Peer>) => {
 }
 
 const App: React.FC = () => {
-  const [step, setStep] = useState(1)
   const [state, dispatch] = useReducer(reducer, initialState)
   const previousIsReady = usePrevious(state.isReady)
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const localStreamRef = useRef<MediaStream>()
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
+  const connectionRef = useRef<MediaConnection>()
   const step2Ref = useRef<ImperativeObject>(null)
   const peer = usePeer({
     key: CONFIG.skyway.apiKey,
     debug: 3,
   })
 
-  const addOnStream = (call: MediaConnection) => {
-    call.on('stream', stream => {
+  const startVideoCommunication = () => {
+    if (!connectionRef.current) return
+    connectionRef.current.on('stream', stream => {
       if (!remoteVideoRef.current) return
       remoteVideoRef.current.srcObject = stream
     })
+    connectionRef.current.on('close', () => {
+      console.log('close')
+      dispatch({ type: 'setRemotePeerId', payload: '' })
+    })
+    dispatch({ type: 'setRemotePeerId', payload: connectionRef.current.remoteId })
   }
 
   useEvent(
@@ -123,10 +139,11 @@ const App: React.FC = () => {
 
   useEvent(
     'call',
-    (call: MediaConnection) => {
+    (connection: MediaConnection) => {
+      connectionRef.current = connection
       if (!localStreamRef.current) return
-      call.answer(localStreamRef.current)
-      addOnStream(call)
+      connection.answer(localStreamRef.current)
+      startVideoCommunication()
     },
     peer,
   )
@@ -149,15 +166,15 @@ const App: React.FC = () => {
 
   const onSubmit: FormEventHandler<HTMLFormElement> = e => {
     e.preventDefault()
-    const call = peer.call(state.inputCallId, localStreamRef.current)
+    connectionRef.current = peer.call(state.inputPeerId, localStreamRef.current)
     // if (existingCall) {
     //   existingCall.close()
     // }
     // Wait for stream on the call, then set peer video display
-    if (!call) {
+    if (!connectionRef.current) {
       throw new Error('call error')
     }
-    addOnStream(call)
+    startVideoCommunication()
     // UI stuff
     // existingCall = call
     // $('#their-id').text(call.remoteId)
@@ -166,8 +183,14 @@ const App: React.FC = () => {
     // $('#step3').show()
   }
 
+  const onClickEndCall: MouseEventHandler<HTMLButtonElement> = () => {
+    dispatch({ type: 'setRemotePeerId', payload: '' })
+    if (!connectionRef.current) return
+    connectionRef.current.close()
+  }
+
   const onChangeCallIdField: ChangeEventHandler<HTMLInputElement> = e => {
-    dispatch({ type: 'setCallId', payload: e.currentTarget.value })
+    dispatch({ type: 'setInputPeerId', payload: e.currentTarget.value })
   }
 
   const setStream = useCallback(async () => {
@@ -250,20 +273,19 @@ const App: React.FC = () => {
               ))}
           </select>
         </div>
-        {state.isReady ? (
+        {!state.isReady && <Step1 />}
+        {state.isReady && !state.remotePeerId && (
           <Step2
             ref={step2Ref}
             id={peer.id}
             onSubmit={onSubmit}
-            fieldValue={state.inputCallId}
+            fieldValue={state.inputPeerId}
             onChange={onChangeCallIdField}
           />
-        ) : (
-          <Step1 />
         )}
-        {step === 3 && <Step3 />}
-        <button onClick={() => setStep(step + 1)}>up</button>
-        <button onClick={() => setStep(step - 1)}>down</button>
+        {state.remotePeerId && (
+          <Step3 localPeerId={peer.id} remotePeerId={state.remotePeerId} onClick={onClickEndCall} />
+        )}
       </div>
     </div>
   )

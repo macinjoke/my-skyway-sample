@@ -1,15 +1,18 @@
-import React from 'react'
+import React, { MouseEventHandler } from 'react'
 
-const Step3 = () => {
+type Props = {
+  localPeerId: string
+  remotePeerId: string
+  onClick: MouseEventHandler<HTMLButtonElement>
+}
+
+const Step3 = ({ localPeerId, remotePeerId, onClick }: Props) => {
   return (
     <div id="step3">
+      <p>Your id: {localPeerId}</p>
+      <p>Currently in call with {remotePeerId}</p>
       <p>
-        Currently in call with <span id="their-id">...</span>
-      </p>
-      <p>
-        <a href="#" className="pure-button pure-button-error" id="end-call">
-          End call
-        </a>
+        <button onClick={onClick}>End call</button>
       </p>
     </div>
   )
