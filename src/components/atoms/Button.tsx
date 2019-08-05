@@ -3,7 +3,7 @@ import styled from 'styled-components'
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement>
 
-const StyledButton = styled.button`
+const _Button = styled.button`
   height: 40px;
   border-radius: 3px;
   background: cornflowerblue;
@@ -20,9 +20,9 @@ const StyledButton = styled.button`
 
 const Button = forwardRef<HTMLButtonElement, Props>(({ children, ...props }, ref) => {
   return (
-    <StyledButton ref={ref} {...props}>
+    <_Button ref={ref} {...props}>
       {children}
-    </StyledButton>
+    </_Button>
   )
 })
 Button.displayName = 'Button'
