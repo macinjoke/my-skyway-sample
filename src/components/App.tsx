@@ -14,6 +14,7 @@ import Step2, { ImperativeObject } from './Step2'
 import Step3 from './Step3'
 import Peer, { MediaConnection } from 'skyway-js'
 import { CONFIG } from 'src/constants'
+import Select from './atoms/Select'
 
 type State = {
   mediaDevices: MediaDeviceInfo[]
@@ -240,7 +241,7 @@ const App: React.FC = () => {
       <video ref={remoteVideoRef} autoPlay width={600}></video>
       <div className="select">
         <label htmlFor="audioSource">Audio input source: </label>
-        <select id="audioSource" onChange={onChangeAudio}>
+        <Select id="audioSource" onChange={onChangeAudio}>
           {state.mediaDevices
             .filter(device => device.kind === 'audioinput')
             .map((device, i) => (
@@ -248,11 +249,11 @@ const App: React.FC = () => {
                 {device.label || `Microphone ${i + 1}`}
               </option>
             ))}
-        </select>
+        </Select>
       </div>
       <div className="select">
         <label htmlFor="videoSource">Video source: </label>
-        <select id="videoSource" onChange={onChangeVideo}>
+        <Select id="videoSource" onChange={onChangeVideo}>
           {state.mediaDevices
             .filter(device => device.kind === 'videoinput')
             .map((device, i) => (
@@ -260,7 +261,7 @@ const App: React.FC = () => {
                 {device.label || `Camera ${i + 1}`}
               </option>
             ))}
-        </select>
+        </Select>
       </div>
       {!state.isReady && (
         <Step1 isGetUserMediaError={state.isGetUserMediaError} onClick={onClickRetry} />
