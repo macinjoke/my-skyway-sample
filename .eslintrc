@@ -32,6 +32,10 @@
     "@typescript-eslint/prefer-interface": 0,
     "react-hooks/rules-of-hooks": 2,
     "react-hooks/exhaustive-deps": 2,
+    "styled-components-name": [
+      2,
+      { "tagStyle": { "startsWith": "_" } }
+    ],
   },
   "settings": {
     "react": {

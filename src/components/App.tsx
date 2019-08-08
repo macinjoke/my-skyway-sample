@@ -115,7 +115,7 @@ const usePeer = (...args: ConstructorParameters<typeof Peer>) => {
   return peerRef.current
 }
 
-const StyledHead = styled.h2`
+const _H2 = styled.h2`
   color: cornflowerblue;
 `
 
@@ -236,7 +236,7 @@ const App: React.FC = () => {
 
   return (
     <div className="pure-g">
-      <StyledHead>SkyWay React Sample</StyledHead>
+      <_H2>SkyWay React Sample</_H2>
       <video ref={localVideoRef} muted autoPlay width={400}></video>
       <video ref={remoteVideoRef} autoPlay width={600}></video>
       <div className="select">

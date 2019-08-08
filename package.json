@@ -10,7 +10,7 @@
     "start": "webpack-dev-server",
     "build": "webpack",
     "lint": "yarn eslint && yarn stylelint",
-    "eslint": "eslint --ext ts --ext tsx src",
+    "eslint": "eslint --ext ts --ext tsx src --rulesdir rules",
     "stylelint": "stylelint './src/**/*.tsx'"
   },
   "dependencies": {
