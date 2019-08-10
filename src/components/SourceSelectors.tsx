@@ -5,11 +5,12 @@ type Props = {
   mediaDevices: MediaDeviceInfo[]
   onChangeAudio: ChangeEventHandler<HTMLSelectElement>
   onChangeVideo: ChangeEventHandler<HTMLSelectElement>
+  className?: string
 }
 
-const SourceSelectors: FC<Props> = ({ mediaDevices, onChangeAudio, onChangeVideo }) => {
+const SourceSelectors: FC<Props> = ({ mediaDevices, onChangeAudio, onChangeVideo, className }) => {
   return (
-    <>
+    <div className={className}>
       <div>
         <label htmlFor="audioSource">Audio input source: </label>
         <Select id="audioSource" onChange={onChangeAudio}>
@@ -34,7 +35,7 @@ const SourceSelectors: FC<Props> = ({ mediaDevices, onChangeAudio, onChangeVideo
             ))}
         </Select>
       </div>
-    </>
+    </div>
   )
 }
 
