@@ -14,7 +14,7 @@ import Step2, { ImperativeObject } from './Step2'
 import Step3 from './Step3'
 import Peer, { MediaConnection } from 'skyway-js'
 import { CONFIG } from 'src/constants'
-import Select from './atoms/Select'
+import SourceSelectors from './SourceSelectors'
 
 type State = {
   mediaDevices: MediaDeviceInfo[]
@@ -239,30 +239,11 @@ const App: React.FC = () => {
       <_H2>SkyWay React Sample</_H2>
       <video ref={localVideoRef} muted autoPlay width={400}></video>
       <video ref={remoteVideoRef} autoPlay width={600}></video>
-      <div className="select">
-        <label htmlFor="audioSource">Audio input source: </label>
-        <Select id="audioSource" onChange={onChangeAudio}>
-          {state.mediaDevices
-            .filter(device => device.kind === 'audioinput')
-            .map((device, i) => (
-              <option key={device.deviceId} value={device.deviceId}>
-                {device.label || `Microphone ${i + 1}`}
-              </option>
-            ))}
-        </Select>
-      </div>
-      <div className="select">
-        <label htmlFor="videoSource">Video source: </label>
-        <Select id="videoSource" onChange={onChangeVideo}>
-          {state.mediaDevices
-            .filter(device => device.kind === 'videoinput')
-            .map((device, i) => (
-              <option key={device.deviceId} value={device.deviceId}>
-                {device.label || `Camera ${i + 1}`}
-              </option>
-            ))}
-        </Select>
-      </div>
+      <SourceSelectors
+        mediaDevices={state.mediaDevices}
+        onChangeAudio={onChangeAudio}
+        onChangeVideo={onChangeVideo}
+      />
       {!state.isReady && (
         <Step1 isGetUserMediaError={state.isGetUserMediaError} onClick={onClickRetry} />
       )}
