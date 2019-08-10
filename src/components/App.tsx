@@ -119,6 +119,27 @@ const _H2 = styled.h2`
   color: cornflowerblue;
 `
 
+const _VideosDiv = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+`
+
+const _LocalVideo = styled.video`
+  background: brown;
+  display: block;
+  flex: 1 2;
+  min-width: 300px;
+  max-width: 400px;
+`
+
+const _RemoteVideo = styled.video`
+  background: yellow;
+  display: block;
+  flex: 1 3;
+  max-width: 600px;
+  min-width: 300px;
+`
+
 const PEER_KEY = String(Math.floor(Math.random() * 9999))
 
 const App: React.FC = () => {
@@ -235,10 +256,12 @@ const App: React.FC = () => {
   }, [setStream])
 
   return (
-    <div className="pure-g">
+    <div>
       <_H2>SkyWay React Sample</_H2>
-      <video ref={localVideoRef} muted autoPlay width={400}></video>
-      <video ref={remoteVideoRef} autoPlay width={600}></video>
+      <_VideosDiv>
+        <_LocalVideo ref={localVideoRef} muted autoPlay></_LocalVideo>
+        <_RemoteVideo ref={remoteVideoRef} autoPlay></_RemoteVideo>
+      </_VideosDiv>
       <SourceSelectors
         mediaDevices={state.mediaDevices}
         onChangeAudio={onChangeAudio}
