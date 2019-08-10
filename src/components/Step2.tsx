@@ -6,6 +6,7 @@ import React, {
   useRef,
 } from 'react'
 import Button from './atoms/Button'
+import TextInput from './atoms/TextInput'
 
 type Props = {
   id: string
@@ -32,7 +33,7 @@ const Step2 = forwardRef<ImperativeObject, Props>(({ id, onSubmit, fieldValue, o
       <p>Share this id with others so they can call you.</p>
       <h3>Make a call</h3>
       <form onSubmit={onSubmit} className="pure-form">
-        <input
+        <TextInput
           ref={inputRef}
           placeholder="Call user id..."
           value={fieldValue}
