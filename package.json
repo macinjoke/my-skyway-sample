@@ -10,8 +10,8 @@
     "start": "webpack-dev-server",
     "build": "webpack",
     "lint": "yarn eslint && yarn stylelint",
-    "eslint": "eslint --ext ts --ext tsx src --rulesdir rules",
-    "stylelint": "stylelint './src/**/*.tsx'"
+    "eslint": "eslint --ext ts --ext tsx src --rulesdir rules --cache",
+    "stylelint": "stylelint --cache './src/**/*.tsx'"
   },
   "dependencies": {
     "react": "^16.8.6",

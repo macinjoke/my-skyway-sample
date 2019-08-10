@@ -4,3 +4,6 @@
 config/*
 !config/default.js
 !config/netlify.js
+
+.eslintcache
+.stylelintcache
