@@ -1,5 +1,6 @@
 import React, { ChangeEventHandler, FC } from 'react'
 import Select from './atoms/Select'
+import styled from 'styled-components'
 
 type Props = {
   mediaDevices: MediaDeviceInfo[]
@@ -7,6 +8,10 @@ type Props = {
   onChangeVideo: ChangeEventHandler<HTMLSelectElement>
   className?: string
 }
+
+const _VideoDiv = styled.div`
+  margin-top: 8px;
+`
 
 const SourceSelectors: FC<Props> = ({ mediaDevices, onChangeAudio, onChangeVideo, className }) => {
   return (
@@ -23,7 +28,7 @@ const SourceSelectors: FC<Props> = ({ mediaDevices, onChangeAudio, onChangeVideo
             ))}
         </Select>
       </div>
-      <div>
+      <_VideoDiv>
         <label htmlFor="videoSource">Video source: </label>
         <Select id="videoSource" onChange={onChangeVideo}>
           {mediaDevices
@@ -34,7 +39,7 @@ const SourceSelectors: FC<Props> = ({ mediaDevices, onChangeAudio, onChangeVideo
               </option>
             ))}
         </Select>
-      </div>
+      </_VideoDiv>
     </div>
   )
 }

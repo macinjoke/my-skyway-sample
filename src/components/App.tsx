@@ -120,6 +120,10 @@ const _H2 = styled.h2`
   color: cornflowerblue;
 `
 
+const __SourceSelectors = styled(SourceSelectors)`
+  margin-top: 8px;
+`
+
 const PEER_KEY = String(Math.floor(Math.random() * 9999))
 
 const App: React.FC = () => {
@@ -243,7 +247,7 @@ const App: React.FC = () => {
         remoteVideoRef={remoteVideoRef}
         isRemoteVisible={!!state.remotePeerId}
       />
-      <SourceSelectors
+      <__SourceSelectors
         mediaDevices={state.mediaDevices}
         onChangeAudio={onChangeAudio}
         onChangeVideo={onChangeVideo}
