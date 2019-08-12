@@ -15,6 +15,7 @@ import Step3 from './Step3'
 import Peer, { MediaConnection } from 'skyway-js'
 import { CONFIG } from 'src/constants'
 import SourceSelectors from './SourceSelectors'
+import Videos from './Videos'
 
 type State = {
   mediaDevices: MediaDeviceInfo[]
@@ -117,34 +118,6 @@ const usePeer = (...args: ConstructorParameters<typeof Peer>) => {
 
 const _H2 = styled.h2`
   color: cornflowerblue;
-`
-
-const _VideosDiv = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-`
-
-const _LocalVideoDiv = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  flex: 1 1 200px;
-  max-width: 400px;
-`
-
-const _LocalVideo = styled.video`
-  width: 100%;
-  vertical-align: bottom;
-`
-
-const _RemoteVideoDiv = styled.div`
-  flex: 2 1 300px;
-  max-width: 600px;
-`
-
-const _RemoteVideo = styled.video`
-  width: 100%;
-  vertical-align: bottom;
 `
 
 const PEER_KEY = String(Math.floor(Math.random() * 9999))
@@ -265,16 +238,11 @@ const App: React.FC = () => {
   return (
     <div>
       <_H2>SkyWay React Sample</_H2>
-      <_VideosDiv>
-        <_LocalVideoDiv>
-          <_LocalVideo ref={localVideoRef} muted autoPlay></_LocalVideo>
-        </_LocalVideoDiv>
-        {state.remotePeerId && (
-          <_RemoteVideoDiv>
-            <_RemoteVideo ref={remoteVideoRef} autoPlay></_RemoteVideo>
-          </_RemoteVideoDiv>
-        )}
-      </_VideosDiv>
+      <Videos
+        localVideoRef={localVideoRef}
+        remoteVideoRef={remoteVideoRef}
+        isRemoteVisible={!!state.remotePeerId}
+      />
       <SourceSelectors
         mediaDevices={state.mediaDevices}
         onChangeAudio={onChangeAudio}
