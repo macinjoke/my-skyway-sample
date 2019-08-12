@@ -7,6 +7,7 @@ import React, {
 } from 'react'
 import Button from './atoms/Button'
 import TextInput from './atoms/TextInput'
+import { copyText } from 'src/utils'
 
 type Props = {
   id: string
@@ -27,9 +28,15 @@ const Step2 = forwardRef<ImperativeObject, Props>(({ id, onSubmit, fieldValue, o
       inputRef.current.focus()
     },
   }))
+
+  const onClick = () => {
+    copyText(id)
+  }
   return (
     <div>
-      <p>Your id :{id}</p>
+      <p>
+        Your id :{id} <Button onClick={onClick}>Copy</Button>
+      </p>
       <p>Share this id with others so they can call you.</p>
       <h3>Make a call</h3>
       <form onSubmit={onSubmit} className="pure-form">
