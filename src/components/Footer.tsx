@@ -12,12 +12,22 @@ const _Footer = styled.footer`
   font-family: 'Century Gothic', sans-serif;
 `
 
+const _p = styled.p`
+  margin: 8px;
+`
+
 const Footer: FC<Props> = ({ className }) => {
   return (
     <_Footer className={className}>
-      <p>
+      <_p>
         Author: <a href="https://twitter.com/macinjoke">macinjoke</a>
-      </p>
+      </_p>
+      <_p>
+        Code:{' '}
+        <a href="https://github.com/macinjoke/my-skyway-sample">
+          https://github.com/macinjoke/my-skyway-sample
+        </a>
+      </_p>
     </_Footer>
   )
 }
