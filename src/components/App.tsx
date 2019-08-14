@@ -12,6 +12,7 @@ import styled from 'styled-components'
 import Step1 from './Step1'
 import Step2, { ImperativeObject } from './Step2'
 import Step3 from './Step3'
+import Footer from './Footer'
 import Peer, { MediaConnection } from 'skyway-js'
 import { CONFIG } from 'src/constants'
 import SourceSelectors from './SourceSelectors'
@@ -116,12 +117,22 @@ const usePeer = (...args: ConstructorParameters<typeof Peer>) => {
   return peerRef.current
 }
 
+const _RootDiv = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+`
+
 const _H2 = styled.h2`
   color: cornflowerblue;
 `
 
 const __SourceSelectors = styled(SourceSelectors)`
   margin-top: 8px;
+`
+
+const __Footer = styled(Footer)`
+  margin-top: auto;
 `
 
 const PEER_KEY = String(Math.floor(Math.random() * 9999))
@@ -240,7 +251,7 @@ const App: React.FC = () => {
   }, [setStream])
 
   return (
-    <div>
+    <_RootDiv>
       <_H2>SkyWay React Sample</_H2>
       <Videos
         localVideoRef={localVideoRef}
@@ -267,7 +278,8 @@ const App: React.FC = () => {
       {state.remotePeerId && (
         <Step3 localPeerId={peer.id} remotePeerId={state.remotePeerId} onClick={onClickEndCall} />
       )}
-    </div>
+      <__Footer />
+    </_RootDiv>
   )
 }
 
