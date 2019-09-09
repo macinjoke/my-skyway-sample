@@ -39,7 +39,7 @@ const Step2 = forwardRef<ImperativeObject, Props>(({ id, onSubmit, fieldValue, o
       </p>
       <p>Share this id with others so they can call you.</p>
       <h3>Make a call</h3>
-      <form onSubmit={onSubmit} className="pure-form">
+      <form onSubmit={onSubmit}>
         <TextInput
           ref={inputRef}
           placeholder="Call user id..."
